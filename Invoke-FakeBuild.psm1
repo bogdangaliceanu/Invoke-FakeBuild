@@ -10,7 +10,7 @@
         }
     }
 
-    $TargetMatches = [System.Text.RegularExpressions.Regex]::Matches((Get-Content $BuildScript -Raw), 'Target\s+@?"(.+?)"')
+    $TargetMatches = [System.Text.RegularExpressions.Regex]::Matches((Get-Content $BuildScript -Raw), '(?<!//[^\r\n]*)Target\s+@?"(.+?)"')
 
     $TargetMatches |
     foreach { $_.Groups[1].Value } |
