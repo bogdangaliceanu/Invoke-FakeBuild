@@ -63,8 +63,27 @@ Function Invoke-FakeBuild {
     Write-Verbose "Working directory = $(Get-Location)"
     
     If (-not ((Test-Path ($FakePath + '\fake.exe')) -or (Test-Path ($FakePath + '\fake\tools\fake.exe')))) {
-        Write-Verbose "Fake was not found; installing it from NuGet"
-        .nuget\NuGet.exe install FAKE -OutputDirectory $FakePath -ExcludeVersion
+        Write-Verbose "Fake was not found"
+
+        If (Test-Path .nuget\NuGet.exe) {
+            Write-Verbose "Installing Fake with NuGet"
+            .nuget\NuGet.exe install FAKE -OutputDirectory $FakePath -ExcludeVersion
+        }
+        Else {
+            Write-Verbose "NuGet was not found (no .nuget folder with nuget executable inside)"
+
+            If ((Test-Path .paket\paket.bootstrapper.exe) -and (-not (Test-Path .paket\paket.exe))) {
+                .paket\paket.bootstrapper.exe
+            }
+            If (Test-Path .paket\paket.exe) {
+                Write-Verbose "Installing Fake with Paket"
+                .paket\paket.exe restore group Build
+                Copy-Item -Path packages\Build\FAKE -Destination $FakePath -Recurse
+            }
+            Else {
+                Write-Verbose "Paket was not found (no .paket folder with bootstrapper or paket executable inside)"
+            }
+        }
     }
 
     If (Test-Path ($FakePath + '\fake.exe')) {
